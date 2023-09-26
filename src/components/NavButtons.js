@@ -6,9 +6,9 @@ const StyledButtons = styled.button`
   width: 100px;
   height: 100px;
   border-radius: 100%;
-  background: gold;
-  border: 10px solid navy;
-  color: navy;
+  background: #232323;
+  border: 5px solid #232323;
+  color: white;
   font-size: 15px;
   font-weight: bolder;
   cursor: pointer;

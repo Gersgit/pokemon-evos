@@ -13,6 +13,10 @@ const PokemonListStyled = styled.div`
     grid-gap: 20px;
     padding: 0;
     list-style: none;
+    padding: 20px;
+    border-bottom: 5px solid #232323;
+    border-radius: 20px;
+    width: 100%;
   }
 `;
 
@@ -25,12 +29,18 @@ const PokemonList = () => {
 
   const getEvolutions = (chain) => {
     evoChain.push(chain.species.name);
-    if (chain.evolves_to && chain.evolves_to.length > 0) {
-      getEvolutions(chain.evolves_to[0]);
-    } else {
-      evoList.push(evoChain);
-      evoChain = [];
+
+    if (!chain.evolves_to.length > 0) {
+      return;
     }
+
+    chain.evolves_to.forEach((pc) => {
+      evoChain.push(pc.species.name);
+
+      if (pc.evolves_to.length > 0) {
+        pc.forEach((pce) => getEvolutions(pce));
+      }
+    });
   };
 
   useEffect(() => {
@@ -49,14 +59,16 @@ const PokemonList = () => {
       }
 
       pokemonChains.forEach((p) => {
+        console.log(p);
         evoChain.push(p.chain.species.name);
 
-        if (p.chain.evolves_to[0]) {
-          getEvolutions(p.chain.evolves_to[0]);
-        } else {
-          evoList.push(evoChain);
-          evoChain = [];
+        if (p.chain.evolves_to.length > 0) {
+          p.chain.evolves_to.forEach((pc) => {
+            getEvolutions(pc);
+          });
         }
+        evoList.push(evoChain);
+        evoChain = [];
       });
 
       setChainData(evoList);
@@ -69,6 +81,8 @@ const PokemonList = () => {
     setLoading(true);
     setCount(next ? count + 20 : count - 20);
   };
+
+  console.log(chainData);
 
   return (
     <div>
