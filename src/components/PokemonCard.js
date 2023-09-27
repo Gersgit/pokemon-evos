@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -26,7 +26,8 @@ const colors = {
 const PokemonCardStyled = styled.li`
   padding: 12px;
   border-radius: 20px;
-  border: 2px solid ${(pokemonType) => colors[pokemonType.pokemonType[0]]};
+  border: 2px solid
+    ${(props) => colors[props.pokemonType && props.pokemonType[0]]};
   position: relative;
   background: linear-gradient(to bottom, rgb(43, 42, 42), rgb(27, 27, 27));
 
@@ -123,45 +124,48 @@ const PokemonCardStyled = styled.li`
 
 // const imgUrl3d = `https://projectpokemon.org/images/normal-sprite/${pokemonName}.gif`
 
-const PokemonCard = ({ pokemonName, setLoading, loading }) => {
+const PokemonCard = ({ pokemon }) => {
   const [imgUrl, setImgUrl] = useState();
   const [pokemonData, setPokemonData] = useState();
+  const [loading, setLoading] = useState(true);
 
+const pokemonName = pokemon[0].name;
+const pokemonId = pokemon[0].id;
+  
   useEffect(() => {
     setImgUrl(
       `https://projectpokemon.org/images/normal-sprite/${pokemonName}.gif`
     );
 
     const fetchPokemonImg = async () => {
-      await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+      await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`)
         .then((res) => res.json())
         .then((data) => {
-          // console.log(data);
           setPokemonData(data);
+          setLoading(false);
         });
     };
 
     fetchPokemonImg();
-  }, [pokemonName]);
+  }, [pokemon]);
 
-  const typesList = pokemonData && pokemonData.types.map((t) => t.type.name);
-  console.log(pokemonData);
+  const typesList = pokemonData?.types.map((t) => t.type.name);
+
   return (
-    // !loading && (
-    pokemonData && (
+    !loading && (
       <PokemonCardStyled pokemonType={typesList} key={uuidv4()}>
         <section className="top">
-          <p>#{pokemonData.id}</p>
+          <p>#{pokemonData?.id}</p>
           <p>
             <span>HP </span>
-            {pokemonData.stats[0].base_stat}
+            {pokemonData?.stats[0].base_stat}
           </p>
         </section>
         <section className="mid">
           <img
             src={imgUrl}
             alt={pokemonName}
-            onError={() => setImgUrl(pokemonData.sprites.front_default)}
+            onError={() => setImgUrl(pokemonData?.sprites.front_default)}
           />
         </section>
         <section className="bottom">
@@ -169,21 +173,20 @@ const PokemonCard = ({ pokemonName, setLoading, loading }) => {
           <div className="pokeSize">
             <span>
               <p>Weight</p>
-              <p>{pokemonData.weight}</p>
+              <p>{pokemonData?.weight}</p>
             </span>
             <span>
               <p>Height</p>
-              <p>{pokemonData.height}</p>
+              <p>{pokemonData?.height}</p>
             </span>
           </div>
           <div className="types">
             <p>Type</p>
-            <p>{typesList.join(" / ")}</p>
+            <p>{typesList?.join(" / ")}</p>
           </div>
         </section>
       </PokemonCardStyled>
     )
-    // )
   );
 };
 

@@ -22,20 +22,37 @@ const PokemonListStyled = styled.div`
 
 const PokemonList = () => {
   const [chainData, setChainData] = useState([]);
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(20);
   const [loading, setLoading] = useState(true);
   let evoChain = [];
   let evoList = [];
 
+  const [chainAmount, setChainAmount] = useState(0);
+  const [chainNext, setChainNext] = useState("");
+  const [chainPrev, setChainPrev] = useState("");
+  const [chains, setChains] = useState([]);
+  const [chainPath, setChainPath] = useState(
+    "https://pokeapi.co/api/v2/evolution-chain?offset=0&limit=20"
+  );
+
   const getEvolutions = (chain) => {
-    evoChain.push(chain.species.name);
+    const pokemonId = chain.species.url
+      .split("pokemon-species/")[1]
+      .split("/")[0];
+
+    evoChain.push({ name: chain.species.name, id: pokemonId });
 
     if (!chain.evolves_to.length > 0) {
       return;
     }
 
     chain.evolves_to.forEach((pc) => {
-      evoChain.push(pc.species.name);
+      const pokemonId = pc.species.url
+        .split("pokemon-species/")[1]
+        .split("/")[0];
+
+      evoChain.push({ name: pc.species.name, id: pokemonId });
+      // evoChain.push(pc.species.name);
 
       if (pc.evolves_to.length > 0) {
         pc.forEach((pce) => getEvolutions(pce));
@@ -43,78 +60,120 @@ const PokemonList = () => {
     });
   };
 
-  useEffect(() => {
-    const pokemonChains = [];
-
-    const fetchPokemon = async () => {
-      for (let i = 0; i < 20; i++) {
-        await fetch(`https://pokeapi.co/api/v2/evolution-chain/${i + count}/`)
-          .then((res) => res.json())
-          .then((data) => pokemonChains.push(data))
-          .catch((err) => {
-            // Do something for an error here
-            // Maybe add a click again message
-            console.log("Error Reading data " + err);
-          });
-      }
-
-      pokemonChains.forEach((p) => {
-        console.log(p);
-        evoChain.push(p.chain.species.name);
-
-        if (p.chain.evolves_to.length > 0) {
-          p.chain.evolves_to.forEach((pc) => {
-            getEvolutions(pc);
-          });
-        }
-        evoList.push(evoChain);
-        evoChain = [];
-      });
-
-      setChainData(evoList);
-    };
-
-    fetchPokemon();
-  }, [count]);
-
-  const handleClick = (next) => {
+  const fetchChain = (url) => {
+    setChainPath(url);
     setLoading(true);
-    setCount(next ? count + 20 : count - 20);
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data1", data);
+        setChainAmount(data.count);
+        setChainNext(data.next);
+        setChainPrev(data.previous);
+        setChains(data.results);
+      })
+      .catch((err) => {
+        // Do something for an error here
+        // Maybe add a click again message
+        console.log("Error Reading data " + err);
+      });
   };
 
-  console.log(chainData);
+  useEffect(() => {
+    console.log("chain path changed");
+    setLoading(true);
+    fetchChain(chainPath);
+  }, []);
+
+  useEffect(() => {
+    console.log("fetching chains..");
+    const fetchChains = () => {
+      const fetchPromises = chains.map((chain) => {
+        return fetch(chain.url)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Network response was not ok for ${chain.url}`);
+            }
+            return response.json();
+          })
+          .catch((error) => {
+            console.error(error);
+            return null; // Handle the error and return an appropriate value
+          });
+      });
+
+      Promise.all(fetchPromises)
+        .then((data) => {
+          data.forEach((d) => {
+            const pokemonId = d.chain.species.url
+              .split("pokemon-species/")[1]
+              .split("/")[0];
+
+            evoChain.push({ name: d.chain.species.name, id: pokemonId });
+
+            if (d.chain.evolves_to.length > 0) {
+              d.chain.evolves_to.forEach((pc) => {
+                getEvolutions(pc);
+              });
+            }
+            evoList.push(evoChain);
+            setChainData(evoList);
+            evoChain = [];
+            setLoading(false);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    };
+
+    fetchChains();
+  }, [chains]);
+
+  const countVals = ["20", "40", "60", "80", "100"];
+  const setUrlLimit = (url) => url.replace(/limit=\d+/, `limit=${count}`);
+
+  const handleFetchLimit = (e) => {
+    setCount(e.target.value);
+    fetchChain(
+      chainPath.toString().replace(`limit=${count}`, `limit=${e.target.value}`)
+    );
+  };
 
   return (
     <div>
       <h1>Pokémon Evolutions</h1>
-      <NavButtons
-        title="Next"
-        position="right"
-        handleClick={() => handleClick(true)}
-      />
-      {count > 20 && (
+      <select value={count} onChange={handleFetchLimit}>
+        {countVals.map((v) => (
+          <option value={v}>{v}</option>
+        ))}
+      </select>
+      {chainNext && (
+        <NavButtons
+          title="Next"
+          position="right"
+          handleClick={() => fetchChain(setUrlLimit(chainNext))}
+        />
+      )}
+      {chainPrev && (
         <NavButtons
           title="Previous"
           position="left"
-          handleClick={() => handleClick(false)}
+          handleClick={() => fetchChain(setUrlLimit(chainPrev))}
         />
       )}
 
       <PokemonListStyled>
-        {chainData.map((chain) => {
-          return (
-            <ul key={uuidv4()}>
-              {chain.map((p) => (
-                <PokemonCard
-                  key={uuidv4()}
-                  pokemonName={p}
-                  setLoading={setLoading}
-                  loading={loading}
-                />
-              ))}
-            </ul>
-          );
-        })}
+        {!loading &&
+          chainData.map((chain) => {
+            return (
+              <ul key={uuidv4()}>
+                {chain.map((p) => (
+                  <PokemonCard key={uuidv4()} pokemon={[p]} />
+                ))}
+              </ul>
+            );
+          })}
       </PokemonListStyled>
     </div>
   );
