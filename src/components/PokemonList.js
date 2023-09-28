@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import PokemonCard from "./PokemonCard";
-import NavButtons from "./NavButtons";
+import Header from "./Header";
 import { v4 as uuidv4 } from "uuid";
-import PaginationBar from "./PaginationBar";
-import PokemonTitle from "./PokemonTitle";
 
 const PokemonListStyled = styled.div`
   width: 500px;
@@ -40,7 +38,6 @@ const PokemonList = () => {
   );
 
   const [pagination, setPagination] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const getEvolutions = (chain) => {
     const pokemonId = chain.species.url
@@ -147,48 +144,17 @@ const PokemonList = () => {
     fetchChains();
   }, [chains]);
 
-  const countVals = ["20", "40", "60", "80", "100"];
-  const setUrlLimit = (url) => url.replace(/limit=\d+/, `limit=${count}`);
-
-  const handleFetchLimit = (e) => {
-    setCount(e.target.value);
-    fetchChain(
-      chainPath.toString().replace(`limit=${count}`, `limit=${e.target.value}`)
-    );
-  };
-
   return (
     <div>
-      <PokemonTitle title="Pokémon Evolutions" />
-      <select value={count} onChange={handleFetchLimit}>
-        {countVals.map((v) => (
-          <option value={v}>{v}</option>
-        ))}
-      </select>
-
-      <PaginationBar
-        pagination={pagination}
+      <Header
         count={count}
+        setCount={setCount}
         fetchChain={fetchChain}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        chainPath={chainPath}
+        chainNext={chainNext}
+        chainPrev={chainPrev}
+        pagination={pagination}
       />
-
-      {chainNext && (
-        <NavButtons
-          title="Next"
-          position="right"
-          handleClick={() => fetchChain(setUrlLimit(chainNext))}
-        />
-      )}
-      {chainPrev && (
-        <NavButtons
-          title="Previous"
-          position="left"
-          handleClick={() => fetchChain(setUrlLimit(chainPrev))}
-        />
-      )}
-
       <PokemonListStyled>
         {!loading &&
           chainData.map((chain) => {

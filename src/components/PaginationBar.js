@@ -1,4 +1,3 @@
-import { useState } from "react";
 import styled from "styled-components";
 
 const PaginationBarStyled = styled.div`
@@ -6,7 +5,7 @@ const PaginationBarStyled = styled.div`
   margin: 0 auto;
 `;
 
-const PokeBalls = styled.button`
+export const PokeBalls = styled.button`
   @keyframes shakeRotate {
     0% {
       transform: rotate(0deg);
