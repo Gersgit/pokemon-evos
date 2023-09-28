@@ -1,3 +1,15 @@
+@font-face {
+  font-family: "pokemonSolid";
+  src: url("./assets/PokemonSolid.ttf") format("truetype");
+  /* You can also specify other font properties here, like font-weight and font-style */
+}
+
+@font-face {
+  font-family: "pokemonHollow";
+  src: url("./assets/PokemonHollow.ttf") format("truetype");
+  /* You can also specify other font properties here, like font-weight and font-style */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",

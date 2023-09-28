@@ -129,9 +129,9 @@ const PokemonCard = ({ pokemon }) => {
   const [pokemonData, setPokemonData] = useState();
   const [loading, setLoading] = useState(true);
 
-const pokemonName = pokemon[0].name;
-const pokemonId = pokemon[0].id;
-  
+  const pokemonName = pokemon[0].name;
+  const pokemonId = pokemon[0].id;
+
   useEffect(() => {
     setImgUrl(
       `https://projectpokemon.org/images/normal-sprite/${pokemonName}.gif`

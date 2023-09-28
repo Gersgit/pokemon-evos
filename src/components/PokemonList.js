@@ -3,6 +3,9 @@ import styled from "styled-components";
 import PokemonCard from "./PokemonCard";
 import NavButtons from "./NavButtons";
 import { v4 as uuidv4 } from "uuid";
+import PaginationBar from "./PaginationBar";
+import PokemonTitle from "./PokemonTitle";
+
 const PokemonListStyled = styled.div`
   width: 500px;
   margin: 0 auto;
@@ -17,6 +20,7 @@ const PokemonListStyled = styled.div`
     border-bottom: 5px solid #232323;
     border-radius: 20px;
     width: 100%;
+    box-sizing: border-box;
   }
 `;
 
@@ -34,6 +38,9 @@ const PokemonList = () => {
   const [chainPath, setChainPath] = useState(
     "https://pokeapi.co/api/v2/evolution-chain?offset=0&limit=20"
   );
+
+  const [pagination, setPagination] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const getEvolutions = (chain) => {
     const pokemonId = chain.species.url
@@ -61,6 +68,8 @@ const PokemonList = () => {
   };
 
   const fetchChain = (url) => {
+    console.log("fetch chain", url);
+
     setChainPath(url);
     setLoading(true);
     fetch(url)
@@ -87,6 +96,14 @@ const PokemonList = () => {
 
   useEffect(() => {
     console.log("fetching chains..");
+
+    setPagination(
+      Array.from(
+        { length: parseInt(chainAmount / count) + 1 },
+        (_, index) => index + 1
+      )
+    );
+
     const fetchChains = () => {
       const fetchPromises = chains.map((chain) => {
         return fetch(chain.url)
@@ -142,12 +159,21 @@ const PokemonList = () => {
 
   return (
     <div>
-      <h1>Pokémon Evolutions</h1>
+      <PokemonTitle title="Pokémon Evolutions" />
       <select value={count} onChange={handleFetchLimit}>
         {countVals.map((v) => (
           <option value={v}>{v}</option>
         ))}
       </select>
+
+      <PaginationBar
+        pagination={pagination}
+        count={count}
+        fetchChain={fetchChain}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+
       {chainNext && (
         <NavButtons
           title="Next"
