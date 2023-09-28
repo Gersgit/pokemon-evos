@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PokemonTitle from "./PokemonTitle";
 import PaginationBar from "./PaginationBar";
 import styled from "styled-components";
@@ -72,6 +72,8 @@ const Header = ({
   };
 
   const [currentPage, setCurrentPage] = useState(1);
+
+  pagination.length < currentPage && setCurrentPage(pagination.length);
 
   return (
     <StickyHeader>
